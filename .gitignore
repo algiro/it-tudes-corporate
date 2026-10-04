@@ -3,3 +3,6 @@ dist/
 .astro/
 .DS_Store
 .claude/
+
+# Server specifics for tools/deploy.sh (see tools/deploy.local.env.example)
+tools/deploy.local.env

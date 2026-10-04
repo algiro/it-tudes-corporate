@@ -42,3 +42,27 @@ npm run dev        # http://localhost:4321
 npm run build      # writes the site to dist/
 npm run check      # type-checks the site
 ```
+
+## Deploy
+
+This site replaces the previous one at https://it-tudes.tech, on the same server and in the
+same folder, so the proxy needs no change. Server specifics live in `tools/deploy.local.env`
+(git-ignored; same values as `it-tudes.tech/tools/deploy.local.env`, template in
+`tools/deploy.local.env.example`).
+
+```powershell
+.\tools\deploy.ps1 -DryRun   # build, connect, show what would change
+.\tools\deploy.ps1           # build and publish
+```
+
+Each deploy uploads `dist/` to `$REMOTE_BASE/releases/<timestamp>` and switches the `current`
+symlink: atomic, no restart, no sudo. The first time (while the old site is still live) it asks
+you to type `replace` before switching; `-Yes` skips that. It refuses to run if the server's
+hostname is not `EXPECTED_HOST`, then checks every page, a 404, the old project URLs and the
+other apps on the proxy, and prints the one-line rollback command. The last 5 releases of this
+site are kept; releases of the previous site are never pruned, so going back to it stays a
+one-line switch.
+
+The previous site's `/projects/<name>/` pages are kept as redirect stubs
+(`src/pages/[...lang]/projects/[slug].astro`). Running the old repo's deploy would put the old
+site back live.

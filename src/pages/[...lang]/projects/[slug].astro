@@ -1,0 +1,38 @@
+---
+// Redirects for the project pages of the previous it-tudes.tech site (/projects/<slug>/ in
+// each language), so old links and search results still land somewhere useful. Static
+// pages, no server change: a meta refresh plus a canonical link. Left out of the sitemap.
+import { langs, langParam, localePath } from "../../../i18n/utils";
+import type { Lang } from "../../../../content/site";
+
+export function getStaticPaths() {
+  // Old slug -> new page. (Defined here: getStaticPaths cannot use top-level constants.)
+  const targets: Record<string, string> = {
+    chefnet: "/products/",
+    ninvoices: "/products/",
+    aislescope: "/products/",
+    "infra-rebuild": "/solutions/#infrastructure",
+    "soul-food-cafe": "/",
+  };
+  return langs.flatMap((lang) =>
+    Object.entries(targets).map(([slug, target]) => ({ params: { lang: langParam(lang), slug }, props: { lang, target } })),
+  );
+}
+
+const { lang, target } = Astro.props as { lang: Lang; target: string };
+const to = localePath(lang, target);
+const canonical = new URL(to, Astro.site);
+---
+<!doctype html>
+<html lang={lang} data-site="it-tudes">
+<head>
+  <meta charset="utf-8" />
+  <title>it-tudes</title>
+  <meta name="robots" content="noindex" />
+  <link rel="canonical" href={canonical} />
+  <meta http-equiv="refresh" content={`0; url=${to}`} />
+</head>
+<body>
+  <p><a href={to}>{canonical.href}</a></p>
+</body>
+</html>

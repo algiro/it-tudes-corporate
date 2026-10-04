@@ -37,7 +37,8 @@ const alternates = langs.map((l) => ({ lang: l, href: localePath(l, basePath) })
 const year = new Date().getFullYear();
 ---
 <!doctype html>
-<html lang={lang}>
+<!-- data-site / data-build: tools/deploy.sh checks them to confirm which site is being served -->
+<html lang={lang} data-site="it-tudes" data-build="corporate">
 <head>
   <meta charset="utf-8" />
   <!-- The "js" class enables scroll reveals; without JavaScript everything is simply visible. -->
