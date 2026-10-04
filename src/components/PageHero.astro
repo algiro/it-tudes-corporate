@@ -1,0 +1,15 @@
+---
+// Navy header band for inner pages, with a brand block field on the right.
+import BrandGraphic from "./BrandGraphic.astro";
+
+interface Props { title: string; lead: string; seed?: number }
+const { title, lead, seed = 1 } = Astro.props;
+---
+<section class="page-hero on-navy">
+  <div class="page-hero-art"><BrandGraphic variant="field" seed={seed} count={11} /></div>
+  <div class="container" data-reveal>
+    <h1>{title}</h1>
+    <p class="lead">{lead}</p>
+    <slot />
+  </div>
+</section>

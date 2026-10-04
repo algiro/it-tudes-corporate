@@ -1,0 +1,42 @@
+---
+// "Who you will work with". Shows the founder when site.founder.name is set (photo optional:
+// src/assets/founder.jpg / .png / .webp), otherwise the generic team text only.
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import Icon from "./Icon.astro";
+import { site, copy, type Lang } from "../../content/site";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const c = copy[lang].team;
+const photos = import.meta.glob<{ default: ImageMetadata }>("../assets/founder.{jpg,jpeg,png,webp}", { eager: true });
+const photo = Object.values(photos)[0]?.default;
+const { name, linkedin } = site.founder;
+---
+<div class="team">
+  <h3>{c.title}</h3>
+  <p>{c.text}</p>
+  {name && (
+    <div class="person">
+      {photo
+        ? <Image src={photo} alt={name} width={112} height={112} class="avatar" />
+        : <span class="avatar avatar-empty" aria-hidden="true"><Icon name="user" size={26} /></span>}
+      <div>
+        <p class="name">{name}</p>
+        <p class="role">{c.founderRole}</p>
+        {linkedin && <a class="link-arrow" href={linkedin} rel="noopener">LinkedIn<Icon name="arrow-up-right" /></a>}
+      </div>
+    </div>
+  )}
+</div>
+
+<style>
+  .team { display: grid; gap: 10px; padding: 24px; border-radius: var(--radius); background: var(--surf); border: 1px solid var(--line); }
+  .team > p { color: var(--soft); }
+  .person { display: flex; align-items: center; gap: 16px; margin-top: 10px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .avatar { width: 56px; height: 56px; border-radius: var(--radius); object-fit: cover; }
+  .avatar-empty { display: grid; place-items: center; background: var(--tint); color: var(--mute); }
+  .name { font-weight: 600; }
+  .role { color: var(--mute); font-size: .9375rem; }
+  .link-arrow { font-size: .9375rem; }
+</style>

@@ -1,0 +1,57 @@
+---
+import { Image } from "astro:assets";
+import Base from "../../layouts/Base.astro";
+import Icon from "../../components/Icon.astro";
+import PageHero from "../../components/PageHero.astro";
+import CtaBand from "../../components/CtaBand.astro";
+import { copy, type Lang } from "../../../content/site";
+import { langPaths, useT } from "../../i18n/utils";
+import chefnetCover from "../../assets/products/chefnet-cover.svg";
+import ninvoicesShot from "../../assets/products/ninvoices.png";
+import aislescopeShot from "../../assets/products/aisleScope2.png";
+
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const c = copy[lang].products;
+const list = [
+  { key: "chefnet" as const, img: chefnetCover, alt: "ChefNet", url: "https://it-tudes.tech/chefnet/", label: t("products.open"), tags: [".NET 10", "React", "Local LLMs", "Whisper", "ONNX"] },
+  { key: "ninvoices" as const, img: ninvoicesShot, alt: "nInvoices dashboard (demo data)", url: "https://github.com/algiro/nInvoices", label: t("products.github"), tags: [".NET 10", "ASP.NET Core", "Vue 3", "Docker"] },
+  { key: "aislescope" as const, img: aislescopeShot, alt: "aisleScope dashboard (demo data)", url: "https://it-tudes.tech/aislescope/", label: t("products.open"), tags: [".NET 10", "ASP.NET Core", "React", "Docker"] },
+];
+---
+<Base lang={lang} title={c.title} description={c.intro}>
+  <PageHero title={c.title} lead={c.intro} seed={17} />
+
+  <section class="section">
+    <div class="container products">
+      {list.map((p) => (
+        <article class="product" data-reveal>
+          <div class="product-media frame"><Image src={p.img} alt={p.alt} widths={p.img.format === "svg" ? undefined : [640, 960, 1280]} sizes="(max-width: 900px) 100vw, 640px" /></div>
+          <div class="product-body">
+            <h2>{c.items[p.key].name}</h2>
+            <p class="lead">{c.items[p.key].text}</p>
+            <ul class="tags">{p.tags.map((tag) => <li>{tag}</li>)}</ul>
+            <a class="btn btn-secondary" href={p.url}>{p.key === "ninvoices" ? p.label : `${p.label} ${c.items[p.key].name}`}<Icon name={p.key === "ninvoices" ? "github-logo" : "arrow-up-right"} /></a>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <CtaBand lang={lang} />
+</Base>
+
+<style>
+  .products { display: grid; gap: clamp(48px, 7vw, 96px); }
+  .product { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 72px); align-items: center; }
+  .product:nth-child(2) .product-media { order: 2; }
+  .product-media { aspect-ratio: 16 / 10; }
+  .product-media :global(img) { width: 100%; height: 100%; object-fit: cover; object-position: top left; }
+  .product-body { display: grid; gap: 16px; justify-items: start; }
+  .product-body .btn { margin-top: 8px; }
+  @media (max-width: 900px) {
+    .product { grid-template-columns: 1fr; }
+    .product:nth-child(2) .product-media { order: 0; }
+  }
+</style>

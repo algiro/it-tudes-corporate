@@ -1,0 +1,81 @@
+---
+import Base from "../../layouts/Base.astro";
+import Icon from "../../components/Icon.astro";
+import PageHero from "../../components/PageHero.astro";
+import CtaBand from "../../components/CtaBand.astro";
+import TeamCard from "../../components/TeamCard.astro";
+import TechLogos from "../../components/TechLogos.astro";
+import { site, copy, type Lang } from "../../../content/site";
+import { langPaths } from "../../i18n/utils";
+
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Lang };
+const c = copy[lang];
+const groups = Object.entries(site.technologies) as [keyof typeof site.technologies, string[]][];
+---
+<Base lang={lang} title={c.about.title}>
+  <PageHero title={c.about.title} lead={c.about.intro} seed={5} />
+
+  <section class="section">
+    <div class="container about-grid">
+      <div class="about-copy" data-reveal>
+        {c.about.text.map((p) => <p class="lead">{p}</p>)}
+      </div>
+      <div data-reveal style="--i:1"><TeamCard lang={lang} /></div>
+    </div>
+  </section>
+
+  <section class="section principles-band">
+    <div class="container">
+      <h2 data-reveal>{c.principles.title}</h2>
+      <ol>
+        {c.principles.items.map((p, i) => (
+          <li data-reveal style={`--i:${i}`}><Icon name="check-circle" size={26} /><h3>{p.title}</h3><p>{p.text}</p></li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <TechLogos label={c.stackLabel} />
+
+  <section class="section">
+    <div class="container">
+      <h2 data-reveal>{c.about.techTitle}</h2>
+      <dl class="tech-groups">
+        {groups.map(([key, items], i) => (
+          <div data-reveal style={`--i:${i}`}>
+            <dt>{c.about.techGroups[key]}</dt>
+            <dd><ul>{items.map((it) => <li>{it}</li>)}</ul></dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <CtaBand lang={lang} />
+</Base>
+
+<style>
+  .about-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
+  .about-copy { display: grid; gap: 20px; }
+  .principles-band { background: var(--surf); border-top: 1px solid var(--line); }
+  .principles-band h2 { margin-bottom: 44px; }
+  .principles-band ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; }
+  .principles-band li { display: grid; gap: 10px; align-content: start; }
+  .principles-band li :global(svg) { color: var(--accent); }
+  .principles-band p { color: var(--soft); }
+  .tech-groups { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 20px; margin: 36px 0 0; }
+  .tech-groups > div { padding: 22px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surf); }
+  .tech-groups dt { font: 500 .75rem/1.3 var(--mono); text-transform: uppercase; letter-spacing: .04em; color: var(--accent); margin-bottom: 12px; }
+  .tech-groups dd { margin: 0; }
+  .tech-groups ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; color: var(--soft); }
+  @media (max-width: 960px) {
+    .about-grid { grid-template-columns: 1fr; }
+    .principles-band ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .tech-groups { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 767px) {
+    .principles-band ol { grid-template-columns: 1fr; }
+    .tech-groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+</style>

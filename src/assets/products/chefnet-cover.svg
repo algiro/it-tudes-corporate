@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-label="ChefNet">
+  <title>ChefNet</title>
+  <rect width="1600" height="1000" fill="#F4F8F2"/>
+  <circle cx="1450" cy="120" r="260" fill="#E4EFE3"/>
+  <circle cx="140" cy="920" r="220" fill="#E4EFE3"/>
+  <svg x="368" y="254" width="864" height="492" viewBox="80 0 288 164"><g transform="translate(183.7 0)"><g fill="#147F0A"><circle cx="25" cy="33" r="13"/><circle cx="40" cy="25" r="15"/><circle cx="55" cy="33" r="13"/><rect x="22" y="30" width="36" height="26" rx="2"/></g><rect x="20" y="60" width="40" height="10" rx="3" fill="#E8590C"/></g><g transform="translate(0 74)"><g fill="none" stroke-width="7.5" stroke-linecap="butt" stroke-linejoin="round"><g stroke="#1A1A12"><path d="M124.4 32.3A18.25 18.25 0 1 0 124.4 55.7"/><path d="M138 22V66M138 50A13.75 13.75 0 0 1 165.5 50V66"/><path d="M182.75 50H210.25A13.75 13.75 0 1 0 207.03 58.84"/><path d="M228 66V31.5A9.5 9.5 0 0 1 237.5 22H244M219.5 37.75H238"/></g><g stroke="#147F0A"><path d="M256 66V22L286 66V22"/><path d="M302.75 50H330.25A13.75 13.75 0 1 0 327.03 58.84"/><path d="M350 24V66M341 37.75H359"/></g></g></g></svg>
+</svg>

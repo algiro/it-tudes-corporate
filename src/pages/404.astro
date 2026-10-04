@@ -1,0 +1,15 @@
+---
+import Base from "../layouts/Base.astro";
+import { defaultLang } from "../../content/site";
+import { useT } from "../i18n/utils";
+const t = useT(defaultLang);
+---
+<Base lang={defaultLang} title={t("404.title")} noAlternates>
+  <section class="section">
+    <div class="container" style="display:grid;gap:16px;justify-items:start">
+      <h1>{t("404.title")}</h1>
+      <p class="lead">{t("404.text")}</p>
+      <a class="btn btn-primary" href="/">{t("404.home")}</a>
+    </div>
+  </section>
+</Base>

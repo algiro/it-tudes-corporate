@@ -1,0 +1,182 @@
+---
+import "@fontsource-variable/geist";
+import "@fontsource-variable/geist-mono";
+import "../styles/global.css";
+import Logo from "../components/Logo.astro";
+import Icon from "../components/Icon.astro";
+import { site, copy, languages, defaultLang, industryIds, solutionIds, type Lang } from "../../content/site";
+import { langs, localePath, stripLang, useT, ogLocale } from "../i18n/utils";
+
+interface Props { lang: Lang; title?: string; description?: string; noAlternates?: boolean }
+const { lang, title, description = copy[lang].description, noAlternates = false } = Astro.props;
+const t = useT(lang);
+const c = copy[lang];
+const home = localePath(lang, "/");
+const basePath = stripLang(Astro.url.pathname);
+const href = (p: string) => localePath(lang, p);
+const current = (p: string) => (basePath.startsWith(p) ? "page" : undefined);
+const industryIcon = { banking: "bank", markets: "chart-line-up", midsize: "buildings" } as const;
+
+const menus = [
+  {
+    label: t("nav.industries"), path: "/industries/", intro: c.industries.intro, cols: 3,
+    items: industryIds.map((id) => ({ id, icon: industryIcon[id], title: c.industries.items[id].title, text: c.industries.items[id].short })),
+  },
+  {
+    label: t("nav.solutions"), path: "/solutions/", intro: c.solutions.intro, cols: 2,
+    items: solutionIds.map((id) => ({ id, icon: c.solutions.items[id].icon, title: c.solutions.items[id].title, text: c.solutions.items[id].short })),
+  },
+];
+const simple = [
+  { label: t("nav.about"), path: "/about/" },
+  { label: t("nav.contact"), path: "/contact/" },
+];
+const fullTitle = title ? `${title} | ${site.name}` : `${site.name} | ${t("title.tagline")}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const alternates = langs.map((l) => ({ lang: l, href: localePath(l, basePath) }));
+const year = new Date().getFullYear();
+---
+<!doctype html>
+<html lang={lang}>
+<head>
+  <meta charset="utf-8" />
+  <!-- The "js" class enables scroll reveals; without JavaScript everything is simply visible. -->
+  <script is:inline>document.documentElement.classList.add("js");</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  {!noAlternates && alternates.map((a) => <link rel="alternate" hreflang={a.lang} href={new URL(a.href, Astro.site)} />)}
+  {!noAlternates && <link rel="alternate" hreflang="x-default" href={new URL(localePath(defaultLang, basePath), Astro.site)} />}
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="sitemap" href="/sitemap-index.xml" />
+  <meta name="theme-color" content="#081532" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content={site.name} />
+  <meta property="og:locale" content={ogLocale[lang]} />
+  <meta property="og:title" content={fullTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: site.name,
+    url: site.url,
+    email: site.email,
+    description: c.description,
+  })} />
+</head>
+<body>
+  <a class="skip" href="#main">{t("skip")}</a>
+  <header class="site-header on-navy">
+    <div class="container header-inner">
+      <a href={home} class="brand" aria-label={`${site.name} ${t("home")}`}><Logo height={28} /></a>
+      <nav class="primary-nav" aria-label="Main">
+        <ul>
+          {menus.map((m) => (
+            <li class="has-menu">
+              <a class="nav-link" href={href(m.path)} aria-current={current(m.path)}>{m.label}<Icon name="caret-down" /></a>
+              <div class="mega">
+                <div class="container mega-inner">
+                  <div class="mega-intro">
+                    <h2>{m.label}</h2>
+                    <p>{m.intro}</p>
+                    <a href={href(m.path)}>{t("nav.overview")}</a>
+                  </div>
+                  <ul style={`--cols:${m.cols}`}>
+                    {m.items.map((it) => (
+                      <li><a href={`${href(m.path)}#${it.id}`}><Icon name={it.icon} size={22} /><strong>{it.title}</strong><span>{it.text}</span></a></li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </li>
+          ))}
+          {simple.map((n) => <li><a class="nav-link" href={href(n.path)} aria-current={current(n.path)}>{n.label}</a></li>)}
+        </ul>
+      </nav>
+      <div class="header-tools">
+        {!noAlternates && (
+          <nav class="langs" aria-label={t("nav.language")}>
+            {alternates.map((a) => (
+              <a href={a.href} hreflang={a.lang} lang={a.lang} title={languages[a.lang]} aria-current={a.lang === lang ? "true" : undefined}>{a.lang.toUpperCase()}</a>
+            ))}
+          </nav>
+        )}
+        <a class="btn btn-primary btn-sm" href={href("/contact/")}>{t("cta.contact")}</a>
+        <details class="mobile-nav">
+          <summary class="icon-btn" aria-label={t("nav.menu")}><Icon name="list" class="i-menu" /><Icon name="x" class="i-close" /></summary>
+          <div class="mobile-panel">
+            {menus.map((m) => <a href={href(m.path)}>{m.label}</a>)}
+            {simple.map((n) => <a href={href(n.path)}>{n.label}</a>)}
+            {!noAlternates && (
+              <nav class="langs" aria-label={t("nav.language")}>
+                {alternates.map((a) => (
+                  <a href={a.href} hreflang={a.lang} lang={a.lang} aria-current={a.lang === lang ? "true" : undefined}>{languages[a.lang]}</a>
+                ))}
+              </nav>
+            )}
+            <a class="btn btn-primary" href={href("/contact/")}>{t("cta.contact")}</a>
+          </div>
+        </details>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <slot />
+  </main>
+
+  <footer class="site-footer on-navy">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <Logo height={26} />
+          <p style="margin-top:16px;max-width:38ch">{c.about.intro}</p>
+        </div>
+        <div>
+          <h2>{t("nav.industries")}</h2>
+          <ul>{industryIds.map((id) => <li><a href={`${href("/industries/")}#${id}`}>{c.industries.items[id].title}</a></li>)}</ul>
+        </div>
+        <div>
+          <h2>{t("nav.solutions")}</h2>
+          <ul>{solutionIds.map((id) => <li><a href={`${href("/solutions/")}#${id}`}>{c.solutions.items[id].title}</a></li>)}</ul>
+        </div>
+        <div>
+          <h2>{t("footer.company")}</h2>
+          <ul>
+            <li><a href={href("/about/")}>{t("nav.about")}</a></li>
+            <li><a href={href("/products/")}>{t("nav.products")}</a></li>
+            <li><a href={href("/contact/")}>{t("nav.contact")}</a></li>
+            <li><a href={`mailto:${site.email}`}>{site.email}</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-legal">
+        <span>&copy; {year} {site.legalName || site.name}</span>
+        {site.vatId && <span>{t("vat")} {site.vatId}</span>}
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Scroll reveal, both ways: elements fade in as they enter from below and fade out again when
+    // scrolling back up moves them below the viewport. Leaving at the top keeps them visible.
+    const items = document.querySelectorAll("[data-reveal]");
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) e.target.classList.add("is-visible");
+          else if (e.boundingClientRect.top > 0) e.target.classList.remove("is-visible");
+        }
+      }, { rootMargin: "0px 0px -8% 0px", threshold: 0.1 });
+      items.forEach((el) => io.observe(el));
+    } else {
+      items.forEach((el) => el.classList.add("is-visible"));
+    }
+
+    // Scroll-linked effects (pinned process steps, hero, parallax), loaded only when motion is allowed.
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) import("../scripts/scroll-fx");
+  </script>
+</body>
+</html>

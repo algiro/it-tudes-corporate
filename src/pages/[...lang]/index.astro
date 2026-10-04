@@ -1,0 +1,376 @@
+---
+import { Image } from "astro:assets";
+import Base from "../../layouts/Base.astro";
+import Icon from "../../components/Icon.astro";
+import BrandGraphic from "../../components/BrandGraphic.astro";
+import TechLogos from "../../components/TechLogos.astro";
+import CtaBand from "../../components/CtaBand.astro";
+import TeamCard from "../../components/TeamCard.astro";
+import { site, copy, industryIds, type Lang, type SolutionId } from "../../../content/site";
+import { langPaths, localePath, useT } from "../../i18n/utils";
+import chefnetIcon from "../../assets/products/chefnet-app-icon.svg";
+import ninvoicesShot from "../../assets/products/ninvoices.png";
+import aislescopeShot from "../../assets/products/aisleScope2.png";
+
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Lang };
+const t = useT(lang);
+const c = copy[lang];
+const href = (p: string) => localePath(lang, p);
+
+// Bento: three rows of wide + narrow cells, alternating sides; wide cells carry a brand graphic.
+const bento: { id: SolutionId; wide: boolean; seed: number }[] = [
+  { id: "reporting", wide: true, seed: 3 },
+  { id: "integration", wide: false, seed: 0 },
+  { id: "platforms", wide: false, seed: 0 },
+  { id: "ai", wide: true, seed: 5 },
+  { id: "infrastructure", wide: true, seed: 8 },
+  { id: "modernisation", wide: false, seed: 0 },
+];
+const stepIcons = ["magnifying-glass", "pencil-ruler", "code-block", "gauge"];
+const industryArt = { banking: 2, markets: 4, midsize: 6 } as const;
+const products = [
+  { key: "chefnet" as const, img: chefnetIcon, kind: "icon" },
+  { key: "ninvoices" as const, img: ninvoicesShot, kind: "shot" },
+  { key: "aislescope" as const, img: aislescopeShot, kind: "shot" },
+];
+---
+<Base lang={lang}>
+  <section class="hero on-navy">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">{c.hero.eyebrow}</p>
+        <h1>{c.hero.title}</h1>
+        <p class="lead">{c.hero.text}</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href={href("/contact/")}>{t("cta.contact")}<Icon name="arrow-right" /></a>
+          <a class="btn btn-secondary" href={href("/solutions/")}>{t("cta.solutions")}</a>
+        </div>
+      </div>
+      <div class="hero-art"><BrandGraphic variant="hero" /></div>
+    </div>
+  </section>
+
+  {site.figures.length > 0 && (
+    <section class="figures">
+      <div class="container">
+        <dl>{site.figures.map((fig, i) => <div data-reveal style={`--i:${i}`}><dt>{fig.label[lang]}</dt><dd>{fig.value}</dd></div>)}</dl>
+      </div>
+    </section>
+  )}
+
+  <section class="section" id="industries">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <h2>{c.industries.title}</h2>
+        <p class="lead">{c.industries.intro}</p>
+      </div>
+      <div class="industries">
+        {industryIds.map((id, i) => {
+          const ind = c.industries.items[id];
+          return (
+            <a class:list={["industry", `industry-${id}`]} href={`${href("/industries/")}#${id}`} data-reveal style={`--i:${i}`}>
+              <div class="industry-art"><BrandGraphic variant="field" seed={industryArt[id]} count={id === "midsize" ? 7 : 10} /></div>
+              <div class="industry-body">
+                <h3>{ind.title}</h3>
+                <p>{ind.short}</p>
+                <span class="link-arrow">{c.industries.more}<Icon name="arrow-right" /></span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  <section class="section solutions-section">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <h2>{c.solutions.title}</h2>
+        <p class="lead">{c.solutions.intro}</p>
+      </div>
+      <div class="bento">
+        {bento.map((cell, i) => {
+          const s = c.solutions.items[cell.id];
+          return (
+            <a class:list={["cell", cell.wide ? "cell-wide on-navy" : "cell-plain"]} href={`${href("/solutions/")}#${cell.id}`} data-reveal style={`--i:${i % 3}`}>
+              {cell.wide && <div class="cell-art"><BrandGraphic variant="field" seed={cell.seed} count={8} /></div>}
+              <div class="cell-body">
+                <span class="cell-icon"><Icon name={s.icon} size={22} /></span>
+                <h3>{s.title}</h3>
+                <p>{s.short}</p>
+                <span class="link-arrow">{c.solutions.more}<Icon name="arrow-right" /></span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  <TechLogos label={c.stackLabel} />
+
+  <section class="section">
+    <div class="container stories-grid">
+      <div class="stories-head" data-reveal>
+        <h2>{c.stories.title}</h2>
+        <p class="lead">{c.stories.intro}</p>
+      </div>
+      <ol class="stories">
+        {c.stories.items.map((s, i) => (
+          <li data-reveal>
+            <p class="story-sector">{s.sector}</p>
+            <h3>{s.title}</h3>
+            <p class="story-text">{s.text}</p>
+            <p class="story-result"><Icon name="check" size={18} /><span>{s.result}</span></p>
+            <a class="link-arrow" href={`${href("/solutions/")}#${s.solution}`}>{c.solutions.items[s.solution].title}<Icon name="arrow-right" /></a>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- Scroll-driven: src/scripts/scroll-fx.ts pins this section on desktop and reveals the steps
+       one by one as you scroll (and hides them again scrolling up). Without JS it is static. -->
+  <section class="section process-section" data-process>
+    <div class="container">
+      <div class="section-head">
+        <h2>{c.process.title}</h2>
+        <p class="lead">{c.process.intro}</p>
+      </div>
+      <div class="process-body">
+        <div class="process-line" aria-hidden="true"><span class="process-fill"></span></div>
+        <ol class="process">
+          {c.process.steps.map((s, i) => (
+            <li class="step">
+              <span class="step-mark" aria-hidden="true"><span class="step-dot"></span></span>
+              <span class="step-icon" aria-hidden="true"><Icon name={stepIcons[i]} size={24} /></span>
+              <h3>{s.title}</h3>
+              <p class="step-text">{s.text}</p>
+              <p class="deliverable"><span>{c.process.deliverable}</span>{s.deliverable}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <h2>{c.engagement.title}</h2>
+        <p class="lead">{c.engagement.intro}</p>
+      </div>
+      <div class="models" role="table" aria-label={c.engagement.title} data-reveal>
+        <div class="models-row models-headrow" role="row">
+          <span role="columnheader"></span>
+          {c.engagement.models.map((m) => <h3 role="columnheader">{m.title}</h3>)}
+        </div>
+        {(["fit", "how"] as const).map((key) => (
+          <div class="models-row" role="row">
+            <span role="rowheader" class="models-label">{c.engagement.rows[key]}</span>
+            {c.engagement.models.map((m) => <p role="cell">{m[key]}</p>)}
+          </div>
+        ))}
+      </div>
+      <!-- Phones: one block per model instead of the table -->
+      <ul class="models-stack">
+        {c.engagement.models.map((m) => (
+          <li>
+            <h3>{m.title}</h3>
+            <dl>
+              <dt>{c.engagement.rows.fit}</dt><dd>{m.fit}</dd>
+              <dt>{c.engagement.rows.how}</dt><dd>{m.how}</dd>
+            </dl>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section why-section">
+    <div class="container why-grid">
+      <div class="why-intro" data-reveal>
+        <h2>{c.principles.title}</h2>
+        <TeamCard lang={lang} />
+      </div>
+      <ul class="principles">
+        {c.principles.items.map((p, i) => (
+          <li data-reveal style={`--i:${i}`}>
+            <Icon name="check-circle" size={24} class="check" />
+            <div><h3>{p.title}</h3><p>{p.text}</p></div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="products-strip">
+    <div class="container products-inner" data-reveal>
+      <div>
+        <h2>{c.products.teaser}</h2>
+        <a class="link-arrow" href={href("/products/")}>{t("products.all")}<Icon name="arrow-right" /></a>
+      </div>
+      <ul>
+        {products.map((p) => (
+          <li>
+            <a href={href("/products/")}>
+              <span class:list={["thumb", p.kind]}><Image src={p.img} alt="" width={p.kind === "icon" ? 44 : 240} /></span>
+              <strong>{c.products.items[p.key].name}</strong>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <CtaBand lang={lang} />
+</Base>
+
+<style>
+  /* hero */
+  .hero { position: relative; overflow: hidden; background:
+    radial-gradient(80% 60% at 85% 40%, rgb(37 99 235 / .28), transparent 70%),
+    linear-gradient(180deg, var(--navy) 0%, #0A1A40 100%); }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 64px); align-items: center; min-height: min(calc(100dvh - 72px), 760px); padding-block: clamp(48px, 7vw, 96px); }
+  .hero-copy { display: grid; gap: 22px; justify-items: start; }
+  .hero-copy h1 { color: var(--on-navy); max-width: 15ch; }
+  .hero-copy .lead { color: var(--on-navy-soft); max-width: 46ch; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; }
+  .hero-art { margin-right: calc(var(--gutter) * -0.5); }
+
+  /* figures (only when site.figures is filled in) */
+  .figures { background: var(--surf); border-bottom: 1px solid var(--line); }
+  .figures dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin: 0; }
+  .figures div { display: flex; flex-direction: column-reverse; gap: 6px; padding: 32px 24px; border-left: 1px solid var(--line); }
+  .figures div:first-child { border-left: 0; padding-left: 0; }
+  .figures dd { margin: 0; font-size: clamp(2rem, 3.4vw, 2.75rem); font-weight: 600; letter-spacing: -0.04em; color: var(--accent); line-height: 1; }
+  .figures dt { color: var(--soft); }
+
+  /* industries: two financial tiles side by side, mid-sized companies as a wide row */
+  .industries { display: grid; grid-template-columns: 7fr 5fr; gap: 20px; }
+  .industry { position: relative; display: grid; grid-template-rows: 220px auto; text-decoration: none; border-radius: var(--radius); overflow: hidden; background: var(--surf); border: 1px solid var(--line); transition: border-color .3s var(--ease), box-shadow .3s var(--ease), transform .3s var(--ease); }
+  .industry:hover { border-color: var(--accent); box-shadow: var(--shadow); transform: translateY(-3px); }
+  .industry-art { background: var(--navy); overflow: hidden; }
+  .industry-art { transition: transform .8s var(--ease); }
+  .industry:hover .industry-art { transform: scale(1.04); }
+  .industry-body { display: grid; gap: 10px; padding: 26px 28px 30px; align-content: start; }
+  .industry-body h3 { font-size: 1.5rem; }
+  .industry-body p { color: var(--soft); max-width: 48ch; }
+  .industry-midsize { grid-column: 1 / -1; grid-template-rows: none; grid-template-columns: 1fr 1fr; }
+  .industry-midsize .industry-art { order: 2; min-height: 220px; }
+  .industry-midsize .industry-body { align-content: center; padding: 32px 36px; }
+
+  /* solutions bento */
+  .solutions-section { background: var(--surf); border-top: 1px solid var(--line); }
+  .bento { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  .cell { position: relative; display: block; min-height: 300px; border-radius: var(--radius); overflow: hidden; text-decoration: none; transition: transform .3s var(--ease), box-shadow .3s var(--ease), border-color .3s var(--ease); }
+  .cell:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+  .cell-wide { grid-column: span 2; background: linear-gradient(135deg, var(--navy), #0F2A62); }
+  .cell-plain { background: var(--bg); border: 1px solid var(--line); }
+  .cell-plain:hover { border-color: var(--accent); }
+  .cell-art { position: absolute; inset: 0 0 0 40%; -webkit-mask-image: linear-gradient(90deg, transparent, #000 50%); mask-image: linear-gradient(90deg, transparent, #000 50%); }
+  .cell-body { position: relative; display: grid; gap: 10px; align-content: end; height: 100%; padding: 28px; max-width: 30rem; }
+  .cell-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--radius); background: var(--accent-soft); color: var(--accent); margin-bottom: 8px; }
+  .cell-wide .cell-icon { background: rgb(255 255 255 / .1); color: var(--on-navy-accent); }
+  .cell h3 { font-size: 1.3125rem; }
+  .cell p { color: var(--soft); }
+  .cell-wide p { color: var(--on-navy-soft); }
+  .cell-wide .link-arrow { color: var(--on-navy-accent); }
+
+  /* stories: sticky heading, stacked stories */
+  .stories-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
+  .stories-head { position: sticky; top: 112px; display: grid; gap: 16px; }
+  .stories { list-style: none; margin: 0; padding: 0; display: grid; }
+  .stories li { display: grid; gap: 12px; padding-block: 36px; border-top: 1px solid var(--line); }
+  .stories li:first-child { padding-top: 0; border-top: 0; }
+  .story-sector { font: 500 .75rem/1.3 var(--mono); letter-spacing: .04em; text-transform: uppercase; color: var(--accent); }
+  .stories h3 { font-size: 1.5rem; }
+  .story-text { color: var(--soft); max-width: 62ch; }
+  .story-result { display: grid; grid-template-columns: auto 1fr; gap: 10px; padding: 14px 16px; border-radius: var(--radius); background: var(--accent-soft); font-weight: 500; }
+  .story-result :global(svg) { color: var(--accent); margin-top: 3px; }
+
+  /* process */
+  .process-section { background: var(--surf); border-block: 1px solid var(--line); }
+  .process-body { position: relative; }
+  .process-line { position: absolute; left: 0; right: 0; top: 7px; height: 2px; background: var(--line); overflow: hidden; }
+  .process-fill { position: absolute; inset: 0; background: linear-gradient(90deg, var(--accent), #F97316); transform-origin: left center; }
+  .process { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; position: relative; }
+  .step { position: relative; display: grid; gap: 12px; align-content: start; justify-items: start; padding-top: 40px; }
+  .step-mark { position: absolute; top: 0; left: 0; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 4px; background: var(--surf); border: 2px solid var(--accent); transform: rotate(45deg) scaleY(.8); }
+  .step-dot { width: 6px; height: 6px; border-radius: 1px; background: var(--accent); }
+  .step-icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: var(--radius); background: var(--accent-soft); color: var(--accent); }
+  .process p { color: var(--soft); }
+  /* While pinned (desktop, motion allowed) the section fills the viewport and centres its content. */
+  .process-section.is-scrolly { min-height: calc(100dvh - 72px); display: flex; align-items: center; }
+  .process-section.is-scrolly > .container { width: 100%; }
+  .deliverable { margin-top: 8px; padding: 14px 16px; border-radius: var(--radius); background: var(--bg); border: 1px solid var(--line); font-size: .9375rem; color: var(--ink) !important; }
+  .deliverable span { display: block; font: .75rem/1.6 var(--mono); text-transform: uppercase; letter-spacing: .04em; color: var(--mute); }
+
+  /* engagement models */
+  .models { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surf); overflow: hidden; }
+  .models-row { display: grid; grid-template-columns: 180px repeat(3, minmax(0, 1fr)); }
+  .models-row > * { padding: 22px 26px; }
+  .models-row + .models-row { border-top: 1px solid var(--line); }
+  .models-headrow { background: var(--navy); }
+  .models-headrow h3 { font-size: 1.125rem; color: var(--on-navy); }
+  .models-label { font: .75rem/1.6 var(--mono); text-transform: uppercase; letter-spacing: .04em; color: var(--mute); }
+  .models-row p { color: var(--soft); }
+  .models-stack { display: none; }
+
+  /* why + team */
+  .why-section { background: var(--surf); border-top: 1px solid var(--line); }
+  .why-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
+  .why-intro { display: grid; gap: 28px; }
+  .principles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 44px; }
+  .principles li { display: grid; grid-template-columns: auto 1fr; gap: 14px; }
+  .principles :global(.check) { color: var(--accent); }
+  .principles h3 { margin-bottom: 6px; }
+  .principles p { color: var(--soft); }
+
+  /* products strip */
+  .products-strip { background: var(--surf); border-top: 1px solid var(--line); }
+  .products-inner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 32px; align-items: center; padding-block: 48px; }
+  .products-inner h2 { font-size: 1.5rem; margin-bottom: 10px; }
+  .products-inner ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .products-inner ul a { display: grid; gap: 10px; text-decoration: none; }
+  .products-inner ul a:hover strong { color: var(--accent); }
+  .thumb { display: grid; place-items: center; height: 96px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--bg); overflow: hidden; }
+  .thumb.shot :global(img) { width: 100%; height: 100%; object-fit: cover; object-position: top left; }
+  .thumb.icon :global(img) { border-radius: 10px; }
+  .products-inner strong { font-weight: 600; transition: color .2s var(--ease); }
+
+  @media (max-width: 960px) {
+    .hero-grid { grid-template-columns: 1fr; min-height: 0; }
+    .hero-art { max-width: 520px; margin: 0 auto; }
+    .industries { grid-template-columns: 1fr; }
+    .industry-midsize { grid-template-columns: 1fr; }
+    .industry-midsize .industry-art { order: 0; min-height: 0; height: 220px; }
+    .bento { grid-template-columns: 1fr 1fr; }
+    .cell-wide { grid-column: 1 / -1; }
+    .stories-grid, .why-grid { grid-template-columns: 1fr; }
+    .stories-head { position: static; }
+    .process { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 48px; }
+    .process-line { display: none; }
+    .products-inner { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 767px) {
+    .hero-art { max-width: 360px; }
+    .bento { grid-template-columns: 1fr; }
+    .cell { min-height: 0; }
+    .cell-art { inset: 0; opacity: .35; -webkit-mask-image: none; mask-image: none; }
+    .process { grid-template-columns: 1fr; }
+    .principles { grid-template-columns: 1fr; gap: 28px; }
+    .figures div, .figures div:first-child { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); }
+    .models { display: none; }
+    .models-stack { display: grid; gap: 16px; list-style: none; margin: 0; padding: 0; }
+    .models-stack li { padding: 20px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surf); }
+    .models-stack h3 { margin-bottom: 12px; }
+    .models-stack dl { display: grid; gap: 4px; margin: 0; }
+    .models-stack dt { font: .75rem/1.6 var(--mono); text-transform: uppercase; color: var(--mute); }
+    .models-stack dt + dd + dt { margin-top: 10px; }
+    .models-stack dd { margin: 0; color: var(--soft); }
+    .products-inner ul { grid-template-columns: 1fr 1fr 1fr; }
+    .thumb { height: 72px; }
+  }
+</style>

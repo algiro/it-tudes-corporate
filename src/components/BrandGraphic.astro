@@ -1,0 +1,180 @@
+---
+// Brand graphics built from the logo's isometric geometry (three stacked layers, blue + orange).
+// Decorative only (aria-hidden). Generated at build time, no images to license.
+//
+//   variant="hero"   the logo exploded into floating layers, with modules connected to it
+//   variant="field"  a seeded field of isometric blocks, for tiles and bands
+//
+// Motion (layers floating, packets travelling) only runs with prefers-reduced-motion: no-preference.
+// The fx-* wrapper groups are moved by src/scripts/scroll-fx.ts as the page scrolls.
+
+interface Props {
+  variant?: "hero" | "field";
+  /** field: changes the arrangement */
+  seed?: number;
+  /** field: how many blocks */
+  count?: number;
+  /** field: colours for a dark (navy) or light background */
+  tone?: "dark" | "light";
+  class?: string;
+}
+const { variant = "field", seed = 1, count = 9, tone = "dark", class: cls } = Astro.props;
+
+const f = (n: number) => Math.round(n * 10) / 10;
+const pts = (p: [number, number][]) => p.map(([x, y]) => `${f(x)},${f(y)}`).join(" ");
+
+// Deterministic pseudo-random numbers, so every build draws the same picture.
+function rng(s: number) {
+  return () => {
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Isometric projection: cell (i, j), height z in units.
+const iso = (a: number, ox: number, oy: number) => {
+  const b = a * 0.578;
+  return (i: number, j: number, z = 0): [number, number] => [ox + (i - j) * a, oy + (i + j) * b - z * a * 0.9];
+};
+
+// Lattice lines covering a w x h box.
+function lattice(w: number, h: number, a: number) {
+  const s = 0.578, rise = w * s, step = 2 * a * s;
+  const lines: string[] = [];
+  for (let c = -rise; c <= h; c += step) {
+    lines.push(`M0,${f(c)} L${w},${f(c + rise)}`, `M0,${f(c + rise)} L${w},${f(c)}`);
+  }
+  return lines.join(" ");
+}
+
+type Block = { top: string; left: string; right: string; hl: boolean; key: number };
+
+let field: { w: number; h: number; lines: string; blocks: Block[]; stroke: string; colors: Record<string, string> } | undefined;
+if (variant === "field") {
+  const w = 480, h = 300, a = 30;
+  const r = rng(seed * 7919);
+  const p = iso(a, w / 2, 40);
+  const cells = new Map<string, { i: number; j: number; z: number }>();
+  let guard = 0;
+  while (cells.size < count && guard++ < 400) {
+    const i = Math.floor(r() * 7), j = Math.floor(r() * 7);
+    if (i + j < 2 || i + j > 11) continue;
+    cells.set(`${i},${j}`, { i, j, z: 0.35 + r() * (1.6 + (seed % 3) * 0.3) });
+  }
+  const list = [...cells.values()].sort((x, y) => x.i + x.j - (y.i + y.j) || x.i - y.i);
+  const hlIndex = Math.floor(r() * list.length);
+  const blocks = list.map((c, idx) => {
+    const { i, j, z } = c;
+    return {
+      key: idx,
+      hl: idx === hlIndex,
+      top: pts([p(i, j, z), p(i + 1, j, z), p(i + 1, j + 1, z), p(i, j + 1, z)]),
+      right: pts([p(i + 1, j, z), p(i + 1, j + 1, z), p(i + 1, j + 1, 0), p(i + 1, j, 0)]),
+      left: pts([p(i, j + 1, z), p(i + 1, j + 1, z), p(i + 1, j + 1, 0), p(i, j + 1, 0)]),
+    };
+  });
+  const dark = tone === "dark";
+  field = {
+    w, h, blocks,
+    lines: lattice(w, h, a),
+    stroke: dark ? "rgb(255 255 255 / .07)" : "rgb(29 78 216 / .12)",
+    colors: dark
+      ? { top: "#3B82F6", left: "#1E40AF", right: "#1A3478", hTop: "#FB923C", hLeft: "#C2410C", hRight: "#9A3412" }
+      : { top: "#C7D8FC", left: "#93B4F5", right: "#7A9EEA", hTop: "#FDBA8C", hLeft: "#F08A4B", hRight: "#D9702F" },
+  };
+}
+
+// Hero: the logo (Logo.astro) scaled up, with its three layers pulled apart.
+const k = 5.6, hx = 330, hy = 70;
+const L = (x: number, y: number, dy = 0): [number, number] => [hx + (x - 40) * k, hy + (y - 11.5) * k + dy];
+const hero = {
+  top: pts([L(8, 30), L(40, 11.5), L(72, 30), L(40, 48.5)]),
+  topEdge: pts([L(8, 30), L(40, 48.5), L(72, 30), L(72, 31.6), L(40, 50.1), L(8, 31.6)]),
+  mid: pts([L(8, 36, 26), L(40, 54.5, 26), L(72, 36, 26), L(72, 44, 26), L(40, 62.5, 26), L(8, 44, 26)]),
+  low: pts([L(8, 50, 52), L(40, 68.5, 52), L(72, 50, 52), L(72, 58, 52), L(40, 76.5, 52), L(8, 58, 52)]),
+};
+// Small modules around the stack, linked to it by dashed lines with travelling packets.
+const cube = (cx: number, cy: number, s: number) => {
+  const b = s * 0.578, t = s * 0.9;
+  return {
+    top: pts([[cx - s, cy], [cx, cy - b], [cx + s, cy], [cx, cy + b]]),
+    left: pts([[cx - s, cy], [cx, cy + b], [cx, cy + b + t], [cx - s, cy + t]]),
+    right: pts([[cx, cy + b], [cx + s, cy], [cx + s, cy + t], [cx, cy + b + t]]),
+  };
+};
+const modules = [
+  { x: 92, y: 120, s: 26 },
+  { x: 586, y: 150, s: 22 },
+  { x: 70, y: 420, s: 22 },
+  { x: 600, y: 440, s: 28 },
+].map((m, i) => ({ ...m, ...cube(m.x, m.y, m.s), i }));
+const hub: [number, number] = L(40, 40, 26);
+const links = modules.map((m) => `M${m.x},${f(m.y + m.s * 0.578)} L${f(hub[0])},${f(hub[1])}`);
+---
+{variant === "hero" ? (
+  <svg class:list={["brand-graphic hero-graphic", cls]} viewBox="0 0 660 560" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="bg-top" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#BFDBFE" /><stop offset="1" stop-color="#60A5FA" />
+      </linearGradient>
+      <linearGradient id="bg-mid" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#1D4ED8" /><stop offset="1" stop-color="#3B82F6" />
+      </linearGradient>
+      <linearGradient id="bg-low" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#C2410C" /><stop offset="1" stop-color="#FB923C" />
+      </linearGradient>
+      <radialGradient id="bg-glow" cx=".5" cy=".45" r=".5">
+        <stop offset="0" stop-color="#3B82F6" stop-opacity=".35" /><stop offset="1" stop-color="#3B82F6" stop-opacity="0" />
+      </radialGradient>
+    </defs>
+    <path d={lattice(660, 560, 36)} stroke="rgb(255 255 255 / .06)" stroke-width="1" fill="none" />
+    <ellipse cx="330" cy="270" rx="300" ry="230" fill="url(#bg-glow)" />
+    {links.map((d, i) => (
+      <g>
+        <path id={`bg-link-${i}`} d={d} stroke="rgb(191 219 254 / .35)" stroke-width="1.2" stroke-dasharray="4 6" fill="none" />
+        <circle class="packet" r="3.2" fill={i % 2 ? "#FB923C" : "#BFDBFE"}>
+          <animateMotion dur={`${3.2 + i * 0.7}s`} repeatCount="indefinite" begin={`${i * 0.6}s`}><mpath href={`#bg-link-${i}`} /></animateMotion>
+        </circle>
+      </g>
+    ))}
+    {modules.map((m) => (
+      <g class={`fx-m${m.i}`}><g class={`module m${m.i}`}>
+        <polygon points={m.left} fill="#1E3A8A" />
+        <polygon points={m.right} fill="#172E6E" />
+        <polygon points={m.top} fill="#3B82F6" />
+      </g></g>
+    ))}
+    <g class="fx-l3"><g class="layer l3"><polygon points={hero.low} fill="url(#bg-low)" /></g></g>
+    <g class="fx-l2"><g class="layer l2"><polygon points={hero.mid} fill="url(#bg-mid)" /></g></g>
+    <g class="fx-l1"><g class="layer l1"><polygon points={hero.topEdge} fill="#3B82F6" /><polygon points={hero.top} fill="url(#bg-top)" /></g></g>
+  </svg>
+) : field && (
+  <svg class:list={["brand-graphic", cls]} viewBox={`0 0 ${field.w} ${field.h}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+    <path d={field.lines} stroke={field.stroke} stroke-width="1" fill="none" />
+    {field.blocks.map((b) => (
+      <g class:list={["blk", b.hl && "hl"]}>
+        <polygon points={b.left} fill={b.hl ? field.colors.hLeft : field.colors.left} />
+        <polygon points={b.right} fill={b.hl ? field.colors.hRight : field.colors.right} />
+        <polygon points={b.top} fill={b.hl ? field.colors.hTop : field.colors.top} />
+      </g>
+    ))}
+  </svg>
+)}
+
+<style>
+  .brand-graphic { display: block; width: 100%; height: 100%; }
+  .hero-graphic { height: auto; overflow: visible; }
+  .packet { display: none; }
+  @media (prefers-reduced-motion: no-preference) {
+    .packet { display: inline; }
+    .layer, .module { animation: float 7s ease-in-out infinite; transform-box: fill-box; }
+    .l1 { animation-delay: 0s; }
+    .l2 { animation-delay: -1.2s; animation-duration: 8s; }
+    .l3 { animation-delay: -2.4s; animation-duration: 9s; }
+    .m1, .m3 { animation-delay: -3s; animation-duration: 10s; }
+    .m0, .m2 { animation-duration: 11s; }
+  }
+  @keyframes float { 50% { transform: translateY(-8px); } }
+</style>

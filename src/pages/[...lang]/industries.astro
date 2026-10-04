@@ -1,0 +1,64 @@
+---
+import Base from "../../layouts/Base.astro";
+import Icon from "../../components/Icon.astro";
+import PageHero from "../../components/PageHero.astro";
+import BrandGraphic from "../../components/BrandGraphic.astro";
+import CtaBand from "../../components/CtaBand.astro";
+import { copy, industryIds, type Lang } from "../../../content/site";
+import { langPaths, localePath } from "../../i18n/utils";
+
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Lang };
+const c = copy[lang];
+const art = { banking: 2, markets: 4, midsize: 6 } as const;
+---
+<Base lang={lang} title={c.industries.title} description={c.industries.intro}>
+  <PageHero title={c.industries.title} lead={c.industries.intro} seed={9} />
+
+  {industryIds.map((id, i) => {
+    const ind = c.industries.items[id];
+    return (
+      <section class:list={["section industry", i % 2 && "alt"]} id={id}>
+        <div class="container industry-grid">
+          <div class="industry-copy" data-reveal>
+            <h2>{ind.title}</h2>
+            <p class="lead">{ind.text}</p>
+            <ul class="checks">{ind.points.map((p) => <li><Icon name="check" size={18} />{p}</li>)}</ul>
+          </div>
+          <aside class="industry-side" data-reveal style="--i:1">
+            <div class="industry-art"><BrandGraphic variant="field" seed={art[id]} count={10} /></div>
+            <div class="related">
+              <h3>{c.solutions.related}</h3>
+              <ul>
+                {ind.solutions.map((sid) => (
+                  <li><a href={`${localePath(lang, "/solutions/")}#${sid}`}><Icon name={c.solutions.items[sid].icon} /><span>{c.solutions.items[sid].title}</span><Icon name="arrow-right" size={16} /></a></li>
+                ))}
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </section>
+    );
+  })}
+
+  <CtaBand lang={lang} />
+</Base>
+
+<style>
+  .industry.alt { background: var(--surf); border-block: 1px solid var(--line); }
+  .industry-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
+  .industry-copy { display: grid; gap: 20px; }
+  .industry-copy .checks { margin-top: 8px; }
+  .industry-side { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: var(--surf); }
+  .alt .industry-side { background: var(--bg); }
+  .industry-art { height: 200px; background: var(--navy); }
+  .related { padding: 22px 24px 24px; }
+  .related h3 { font: 500 .75rem/1.3 var(--mono); text-transform: uppercase; letter-spacing: .04em; color: var(--mute); margin-bottom: 10px; }
+  .related ul { list-style: none; margin: 0; padding: 0; }
+  .related a { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 12px 0; text-decoration: none; font-weight: 500; border-top: 1px solid var(--line); }
+  .related li:first-child a { border-top: 0; }
+  .related a :global(svg:first-child) { color: var(--accent); }
+  .related a :global(svg:last-child) { color: var(--mute); transition: transform .25s var(--ease), color .25s var(--ease); }
+  .related a:hover :global(svg:last-child) { color: var(--accent); transform: translateX(4px); }
+  @media (max-width: 900px) { .industry-grid { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,34 @@
+---
+import Icon from "./Icon.astro";
+import BrandGraphic from "./BrandGraphic.astro";
+import { site, copy, type Lang } from "../../content/site";
+import { localePath, useT } from "../i18n/utils";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useT(lang);
+const c = copy[lang].cta;
+---
+<section class="cta on-navy">
+  <div class="cta-art"><BrandGraphic variant="field" seed={11} count={12} /></div>
+  <div class="container cta-inner" data-reveal>
+    <h2>{c.title}</h2>
+    <p>{c.text}</p>
+    <div class="cta-actions">
+      <a class="btn btn-primary" href={localePath(lang, "/contact/")}>{t("cta.contact")}<Icon name="arrow-right" /></a>
+      <span>{t("cta.email")} <a href={`mailto:${site.email}`}>{site.email}</a></span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta { position: relative; overflow: hidden; background: linear-gradient(120deg, var(--navy) 30%, #10306E); }
+  .cta-art { position: absolute; inset: 0 0 0 auto; width: min(55%, 700px); -webkit-mask-image: linear-gradient(90deg, transparent, #000 45%); mask-image: linear-gradient(90deg, transparent, #000 45%); }
+  .cta-inner { position: relative; display: grid; gap: 18px; justify-items: start; padding-block: clamp(72px, 9vw, 120px); }
+  h2 { max-width: 18ch; color: var(--on-navy); }
+  p { color: var(--on-navy-soft); max-width: 52ch; font-size: 1.125rem; }
+  .cta-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; margin-top: 10px; }
+  .cta-actions span { color: var(--on-navy-soft); font-size: .9375rem; }
+  .cta-actions span a { color: var(--on-navy); }
+  @media (max-width: 767px) { .cta-art { width: 100%; opacity: .22; } }
+</style>
